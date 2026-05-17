@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>คำนวณเงินกู้ สูตรธนาคารจริง</title>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:sans-serif;
+}
+
+body{
+  background:#f5f3ef;
+  color:#333;
+}
+
+.header{
+  background:#ebe5da;
+  padding:22px;
+}
+
+.title{
+  text-align:center;
+  font-size:26px;
+  font-weight:bold;
+}
+
+.tabs{
+  display:flex;
+  justify-content:space-around;
+  margin-top:24px;
+  font-size:22px;
+}
+
+.active{
+  border-bottom:3px solid #000;
+  padding-bottom:10px;
+}
+
+.container{
+  padding:20px;
+}
+
+.card{
+  background:#fff;
+  border-radius:26px;
+  padding:24px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.08);
+}
+
+.form-group{
+  margin-bottom:22px;
+}
+
+label{
+  display:block;
+  margin-bottom:10px;
+  font-size:18px;
+}
+
+input{
+  width:100%;
+  padding:15px;
+  border:1px solid #ddd;
+  border-radius:14px;
+  font-size:18px;
+}
+
+.button-group{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:24px;
+}
+
+button{
+  border:none;
+  border-radius:14px;
+  padding:16px;
+  font-size:19px;
+  cursor:pointer;
+}
+
+.btn-gold{
+  background:#b79f6b;
+  color:white;
+  font-weight:bold;
+}
+
+.btn-outline{
+  background:white;
+  border:2px solid #b79f6b;
+  color:#b79f6b;
+  font-weight:bold;
+}
+
+.result-card{
+  margin-top:24px;
+  background:#fff;
+  border-radius:26px;
+  padding:28px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.08);
+}
+
+.result-row{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:28px;
+  font-size:20px;
+}
+
+.result-row strong{
+  text-align:right;
+  font-size:22px;
+}
+
+.section-title{
+  margin:34px 0 24px;
+  font-size:26px;
+  font-weight:bold;
+}
+
+.schedule-btn{
+  width:100%;
+  margin-top:12px;
+  border:2px solid #b79f6b;
+  background:white;
+  color:#b79f6b;
+  font-weight:bold;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  justify-content:flex-end;
+  flex-direction:column;
+}
+
+.modal-content{
+  background:white;
+  border-radius:28px 28px 0 0;
+  padding:22px;
+  max-height:90vh;
+  overflow:auto;
+}
+
+.modal-bar{
+  width:90px;
+  height:8px;
+  background:#ddd;
+  border-radius:999px;
+  margin:0 auto 24px;
+}
+
+.modal-title{
+  font-size:28px;
+  font-weight:bold;
+  margin-bottom:20px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th{
+  text-align:left;
+  padding:12px 8px;
+  color:#666;
+  font-size:16px;
+}
+
+td{
+  padding:14px 8px;
+  font-size:18px;
+}
+
+.close-btn{
+  width:100%;
+  margin-top:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+
+  <div class="title">
+    คำนวณเงินกู้
+  </div>
+
+  <div class="tabs">
+    <div class="active">หนี้</div>
+    <div>เทียบ</div>
+    <div>รีไฟแนนซ์</div>
+  </div>
+
+</div>
+
+<div class="container">
+
+  <div class="card">
+
+    <div class="form-group">
+      <label>วงเงินกู้</label>
+      <input type="number" id="loan" value="3000000">
+    </div>
+
+    <div class="form-group">
+      <label>ดอกเบี้ย (% ต่อปี)</label>
+      <input type="number" id="rate" value="7">
+    </div>
+
+    <div class="form-group">
+      <label>ระยะเวลาผ่อน (ปี)</label>
+      <input type="number" id="years" value="20">
+    </div>
+
+    <div class="form-group">
+      <label>โปะเพิ่มต่อเดือน</label>
+      <input type="number" id="extra" value="2000">
+    </div>
+
+    <div class="button-group">
+
+      <button class="btn-outline" onclick="resetForm()">
+        รีเซ็ตค่า
+      </button>
+
+      <button class="btn-gold" onclick="calculateLoan()">
+        คำนวณ
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="result-card">
+
+    <div class="result-row">
+      <span>ผ่อนทั้งหมดต่อเดือน</span>
+      <strong id="monthlyPayment">-</strong>
+    </div>
+
+    <div class="result-row">
+      <span>ผ่อนทั้งหมด</span>
+      <strong id="totalPaid">-</strong>
+    </div>
+
+    <div class="result-row">
+      <span>ดอกเบี้ยทั้งหมด</span>
+      <strong id="totalInterest">-</strong>
+    </div>
+
+    <div class="result-row">
+      <span>ผ่อนชำระรายปี</span>
+      <strong id="yearlyPay">-</strong>
+    </div>
+
+    <div class="result-row">
+      <span>ผ่อนชำระปีจากเงินต้น</span>
+      <strong id="principalPercent">-</strong>
+    </div>
+
+    <div class="section-title">
+      รวมเงินผ่อนเพิ่มเติม
+    </div>
+
+    <div class="result-row">
+      <span>ดอกเบี้ยที่ประหยัดได้</span>
+      <strong id="savedInterest">-</strong>
+    </div>
+
+    <div class="result-row">
+      <span>ผ่อนหมดก่อนกำหนด</span>
+      <strong id="earlyFinish">-</strong>
+    </div>
+
+    <button class="schedule-btn" onclick="openModal()">
+      ดูตารางผ่อนชำระ
+    </button>
+
+  </div>
+
+</div>
+
+<div class="modal" id="modal">
+
+  <div class="modal-content">
+
+    <div class="modal-bar"></div>
+
+    <div class="modal-title">
+      ตารางผ่อนชำระ
+    </div>
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>งวด</th>
+          <th>เงินผ่อน</th>
+          <th>ดอกเบี้ย</th>
+          <th>เงินต้น</th>
+          <th>คงเหลือ</th>
+        </tr>
+      </thead>
+
+      <tbody id="scheduleBody"></tbody>
+
+    </table>
+
+    <button class="btn-gold close-btn" onclick="closeModal()">
+      ปิด
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+
+function format(num){
+
+  return Number(num).toLocaleString("th-TH",{
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  });
+
+}
+
+function calculateLoan(){
+
+  const loan =
+    parseFloat(document.getElementById("loan").value);
+
+  const annualRate =
+    parseFloat(document.getElementById("rate").value);
+
+  const years =
+    parseFloat(document.getElementById("years").value);
+
+  const extra =
+    parseFloat(document.getElementById("extra").value);
+
+  const months = years * 12;
+
+  const monthlyRate =
+    annualRate / 100 / 12;
+
+  // สูตรค่างวดธนาคาร
+
+  const monthlyPayment =
+    loan *
+    (
+      monthlyRate *
+      Math.pow(1 + monthlyRate, months)
+    ) /
+    (
+      Math.pow(1 + monthlyRate, months) - 1
+    );
+
+  const actualPay =
+    monthlyPayment + extra;
+
+  let balance = loan;
+
+  let totalInterest = 0;
+
+  let totalPaid = 0;
+
+  let currentMonth = 0;
+
+  let tableHTML = "";
+
+  while(balance > 0){
+
+    currentMonth++;
+
+    // ดอกเบี้ยงวดนี้
+
+    let interest =
+      balance * monthlyRate;
+
+    // เงินต้น
+
+    let principal =
+      actualPay - interest;
+
+    // ปิดงวดสุดท้าย
+
+    if(principal > balance){
+
+      principal = balance;
+
+    }
+
+    // จ่ายจริงงวดสุดท้าย
+
+    let paymentThisMonth =
+      principal + interest;
+
+    balance -= principal;
+
+    totalInterest += interest;
+
+    totalPaid += paymentThisMonth;
+
+    tableHTML += `
+      <tr>
+        <td>${currentMonth}</td>
+        <td>${format(paymentThisMonth)}</td>
+        <td>${format(interest)}</td>
+        <td>${format(principal)}</td>
+        <td>${format(
+          Math.max(balance,0)
+        )}</td>
+      </tr>
+    `;
+
+    if(currentMonth > 1000){
+      break;
+    }
+
+  }
+
+  // แบบไม่โปะ
+
+  const normalTotalPaid =
+    monthlyPayment * months;
+
+  const normalInterest =
+    normalTotalPaid - loan;
+
+  // ดอกเบี้ยประหยัด
+
+  const savedInterest =
+    normalInterest - totalInterest;
+
+  // ผ่อนหมดก่อนกำหนด
+
+  const earlyMonths =
+    months - currentMonth;
+
+  // % รายปีจากเงินต้น
+
+  const yearlyPayment =
+    actualPay * 12;
+
+  const principalPercent =
+    (yearlyPayment / loan) * 100;
+
+  document.getElementById("monthlyPayment").innerHTML =
+    format(monthlyPayment)
+    + " + "
+    + format(extra);
+
+  document.getElementById("totalPaid").innerHTML =
+    format(totalPaid);
+
+  document.getElementById("totalInterest").innerHTML =
+    format(totalInterest);
+
+  document.getElementById("yearlyPay").innerHTML =
+    format(yearlyPayment);
+
+  document.getElementById("principalPercent").innerHTML =
+    principalPercent.toFixed(2);
+
+  document.getElementById("savedInterest").innerHTML =
+    format(savedInterest);
+
+  document.getElementById("earlyFinish").innerHTML =
+    earlyMonths + " เดือน";
+
+  document.getElementById("scheduleBody").innerHTML =
+    tableHTML;
+
+}
+
+function resetForm(){
+
+  document.getElementById("loan").value = "";
+  document.getElementById("rate").value = "";
+  document.getElementById("years").value = "";
+  document.getElementById("extra").value = "";
+
+}
+
+function openModal(){
+
+  document.getElementById("modal").style.display =
+    "flex";
+
+}
+
+function closeModal(){
+
+  document.getElementById("modal").style.display =
+    "none";
+
+}
+
+calculateLoan();
+
+</script>
+
+</body>
+</html>
